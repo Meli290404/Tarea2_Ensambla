@@ -10,7 +10,7 @@ section .data
     mensaje_bis db "Es bisiesto", 10, 0
     mensaje_noBis db "No es bisiesto", 10, 0
     mensaje_entrada db "Ingrese un año: ", 0
-    formato_entrada db "%d", 0        ; formato para leer entero (no 'tipo_entrada')
+    formato_entrada db "%d", 0        
 
 section .bss 
     anio resd 1   ; variable que guarda el año ingresado 
@@ -23,19 +23,54 @@ section .text
 ; ----------------------------------------------------------
 ; es_bisiesto:
 ;   Entrada: año en la pila (primer parámetro)
-;   Salida: eax = 1 si es bisiesto, eax = 0 si no lo es
+;   Salida: rax = 1 si es bisiesto, rax = 0 si no lo es
 ;
-;   Consideraciones: 
-;     - usar logica de division entre 400 y 4
+;   
 ; ----------------------------------------------------------
 
 es_bisiesto:
+push rbp
+mov rbp, rsp
 
-no_bisiesto:
+sub rsp, 16            ; reservar espacio local
+mov dword [rbp-4], edi ; guardar el parámetro (year) en memoria local
 
-es_bisiesto_si:
+mov eax, [rbp-4]       ; eax = year
+cdq                    ; extiende signo de eax -> edx
+mov ecx, 400
+idiv ecx               ; edx = year % 400
+cmp edx, 0
+jne .divisible4y100
+mov eax, 1
+jmp .fin
 
-fin_bisiesto:
+.divisible4y100:
+; ver si es divisible entre 4
+mov eax, [rbp-4]
+cdq
+mov ecx, 4
+idiv ecx
+cmp edx, 0
+jne .no_bisiesto
+;si es divisible entre cuatro, ver que no es divisible entre 100
+mov eax, [rbp-4]
+cdq
+mov ecx, 100
+idiv ecx
+cmp edx, 0
+je .no_bisiesto
+;divisible entre 4 y no entre 100
+mov eax, 1
+jmp .fin
+
+.no_bisiesto:
+mov eax, 0
+
+.fin:
+add rsp, 16
+mov rsp, rbp
+pop rbp
+ret
    
 ; ----------------------------------------------------------
 ; main:
@@ -44,42 +79,43 @@ fin_bisiesto:
 ; ----------------------------------------------------------
 
 main:
-    push ebp
-    mov ebp, esp          ; preparar stack frame
+    push rbp
+    mov rbp, rsp          ; preparar stack frame
 
     ; Mostrar mensaje de entrada
-    push mensaje_entrada
+    lea rdi, [rel mensaje_entrada]
+    xor eax, eax
     call printf
-    add esp, 4            ; limpiar pila 
 
     ; Leer año desde teclado
-    push anio             ; dirección donde guardar el valor leído
-    push formato_entrada  ; formato "%d"
+    lea rdi, [rel formato_entrada]  ; formato "%d"
+    lea rsi, [rel anio]             ; dirección donde guardar el valor leído
+    xor eax, eax
     call scanf
-    add esp, 8            ; limpiar pila 
 
     ; Cargar el valor del año leído
-    mov eax, [anio]       ; mover el año leído a eax
-    push eax              ; pasar como argumento a la función
-    call es_bisiesto      ; llamada a la función lógica
-    add esp, 4            ; limpiar pila después de la llamada
+    mov eax, dword [rel anio]   ; mover el año leído a eax
+    mov edi, eax                ; pasar como argumento a la función
+    call es_bisiesto            ; llamada a la función lógica
 
-    ; eax contiene el resultado (1 = bisiesto, 0 = no bisiesto)
+    ; rax contiene el resultado (1 = bisiesto, 0 = no bisiesto)
     cmp eax, 1
     je imprimir_bisiesto
 
 imprimir_no_bisiesto:
-    push mensaje_noBis
+    lea rdi, [rel mensaje_noBis]
+    xor eax, eax
     call printf
-    add esp, 4
     jmp fin
 
 imprimir_bisiesto:
-    push mensaje_bis
+    lea rdi, [rel mensaje_bis]
+    xor eax, eax
     call printf
-    add esp, 4
 
 fin:
-    mov esp, ebp
-    pop ebp
+    mov eax, 0
+    mov rsp, rbp
+    pop rbp
     ret
+section .note.GNU-stack noalloc noexec nowrite progbits
