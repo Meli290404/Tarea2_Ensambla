@@ -1,9 +1,7 @@
-; ======================================
 ; Archivo: bisiesto.asm
-; Descripción: Función en ensamblador NASM x86_64
+; Descripción: Función en ensamblador NASM x86
 ;              que determina si un año es bisiesto.
-; Compilación: nasm -f elf64 bisiesto.asm -o bisiesto.o
-; ======================================
+;---------------------------------------------------------------------
 
 section .text
     global es_bisiesto        ; Exporta la función para usarla en C++

@@ -14,14 +14,12 @@ TARGET = tarea2
 CXXFLAGS = -std=c++17 -Wall -no-pie
 ASMFLAGS = -f elf64
 
-# ============================================
 # Reglas principales
-# ============================================
 
 all: $(TARGET)
 
 $(TARGET): $(SRC_CPP) $(OBJ_ASM)
-	@echo "🔧 Compilando proyecto..."
+	@echo "Compilando proyecto..."
 	$(CXX) $(SRC_CPP) $(OBJ_ASM) -o $(TARGET) $(CXXFLAGS) $(PKG_FLAGS) -Wl,-rpath,/usr/lib/x86_64-linux-gnu
 	@echo "Compilación finalizada. Ejecuta 'make run' para probar."
 
@@ -29,12 +27,9 @@ $(OBJ_ASM): $(SRC_ASM)
 	@echo "Ensamblando módulo NASM..."
 	$(ASM) $(ASMFLAGS) $(SRC_ASM) -o $(OBJ_ASM)
 
-# ============================================
 # Ejecución en entorno limpio (sin Snap)
-# ============================================
 
 run: $(TARGET)
-	@echo "Ejecutando aplicación en entorno limpio (autenticado)..."
 	env -i \
 	  DISPLAY=$(DISPLAY) \
 	  XAUTHORITY=$(XAUTHORITY) \
@@ -45,9 +40,7 @@ run: $(TARGET)
 	  ./$(TARGET)
 
 
-# ============================================
 # Limpieza
-# ============================================
 
 clean:
 	@echo "Limpiando archivos generados..."
